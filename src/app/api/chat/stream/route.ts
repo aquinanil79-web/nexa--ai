@@ -31,7 +31,7 @@ export async function POST(request: NextRequest) {
   let response: Response | undefined;
   let selected = first;
   let authFailure = false;
-  for (const candidate of candidates.slice(0, 3)) {
+  for (const candidate of candidates) {
     selected = candidate;
     try {
       response = candidate.provider === "openrouter" ? await streamOpenRouter(candidate.id, body.messages) : await streamHuggingFace(candidate.id, body.messages);

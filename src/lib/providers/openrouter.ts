@@ -13,7 +13,7 @@ export async function streamOpenRouter(model: string, messages: ChatMessage[]): 
 export async function listOpenRouterModels(): Promise<ModelInfo[]> {
   const key = process.env.OPENROUTER_API_KEY;
   if (!key) return [];
-  const response = await fetch(`${endpoint}/models`, { headers: { Authorization: `Bearer ${key}` }, next: { revalidate: 300 } });
+  const response = await fetch(`${endpoint}/models`, { headers: { Authorization: `Bearer ${key}` }, cache: "no-store" });
   if (!response.ok) throw new Error(`OpenRouter catalog request failed: ${response.status}`);
   const payload = await response.json() as { data?: Array<{ id: string; name?: string; pricing?: { prompt?: string; completion?: string }; context_length?: number; architecture?: { input_modalities?: string[]; output_modalities?: string[] } }> };
   const lastChecked = new Date().toISOString();

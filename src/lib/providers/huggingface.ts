@@ -13,7 +13,7 @@ export async function listHuggingFaceModels(): Promise<ModelInfo[]> {
   if (!process.env.HUGGINGFACE_API_KEY) return [];
   const lastChecked = new Date().toISOString();
   const checks = await Promise.allSettled(recommendedModels.map(async (candidate) => {
-    const response = await fetch(`https://huggingface.co/api/models/${candidate.id}?expand[]=inferenceProviderMapping`, { headers: { Authorization: `Bearer ${process.env.HUGGINGFACE_API_KEY}` }, next: { revalidate: 300 } });
+    const response = await fetch(`https://huggingface.co/api/models/${candidate.id}?expand[]=inferenceProviderMapping`, { headers: { Authorization: `Bearer ${process.env.HUGGINGFACE_API_KEY}` }, cache: "no-store" });
     if (!response.ok) return null;
     const metadata = await response.json() as { inferenceProviderMapping?: Record<string, unknown> };
     if (!metadata.inferenceProviderMapping || Object.keys(metadata.inferenceProviderMapping).length === 0) return null;
