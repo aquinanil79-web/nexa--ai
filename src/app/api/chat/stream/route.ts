@@ -30,16 +30,21 @@ export async function POST(request: NextRequest) {
   const candidates = [first, ...(await getFreeModels()).filter((model) => model.id !== first.id)];
   let response: Response | undefined;
   let selected = first;
+  let authFailure = false;
   for (const candidate of candidates.slice(0, 3)) {
     selected = candidate;
     try {
       response = candidate.provider === "openrouter" ? await streamOpenRouter(candidate.id, body.messages) : await streamHuggingFace(candidate.id, body.messages);
+      if (response.status === 401 || response.status === 403) authFailure = true;
       if (response.ok) break;
     } catch {
       response = undefined;
     }
   }
-  if (!response?.ok) return Response.json({ error: errorMessage(response?.status ?? 503) }, { status: response?.status ?? 503 });
+  if (!response?.ok) {
+    const status = authFailure ? 401 : (response?.status ?? 503);
+    return Response.json({ error: errorMessage(status) }, { status });
+  }
   if (!response.body) return Response.json({ error: "The provider returned an empty stream." }, { status: 502 });
 
   const encoder = new TextEncoder();
