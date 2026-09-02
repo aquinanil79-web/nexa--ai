@@ -1,10 +1,7 @@
 import { NextResponse } from "next/server";
-import { listHuggingFaceModels } from "@/lib/providers/huggingface";
-import { listOpenRouterModels } from "@/lib/providers/openrouter";
-import type { ModelInfo } from "@/types/ai";
+import { getFreeModels } from "@/lib/router/model-router";
 
 export async function GET() {
-  const results = await Promise.allSettled([listOpenRouterModels(), listHuggingFaceModels()]);
-  const models = results.flatMap((result) => result.status === "fulfilled" ? result.value : []) as ModelInfo[];
+  const models = await getFreeModels();
   return NextResponse.json({ models, checkedAt: new Date().toISOString(), freeOnly: true });
 }

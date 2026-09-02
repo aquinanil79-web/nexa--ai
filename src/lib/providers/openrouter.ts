@@ -17,7 +17,7 @@ export async function listOpenRouterModels(): Promise<ModelInfo[]> {
   if (!response.ok) throw new Error(`OpenRouter catalog request failed: ${response.status}`);
   const payload = await response.json() as { data?: Array<{ id: string; name?: string; pricing?: { prompt?: string; completion?: string }; context_length?: number; architecture?: { input_modalities?: string[]; output_modalities?: string[] } }> };
   const lastChecked = new Date().toISOString();
-  return onlyFreeModels((payload.data ?? []).filter((model) => isCurrentlyFree(model.pricing ?? {})).map((model) => {
+  return onlyFreeModels((payload.data ?? []).filter((model) => model.id.endsWith(":free") || isCurrentlyFree(model.pricing ?? {})).map((model) => {
     const searchable = `${model.id} ${model.name ?? ""}`.toLowerCase();
     const inputModalities = model.architecture?.input_modalities ?? ["text"];
     const outputModalities = model.architecture?.output_modalities ?? ["text"];
