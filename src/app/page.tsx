@@ -38,7 +38,19 @@ export default function Home() {
     setIsGenerating(true);
     try {
       const response = await fetch("/api/chat/stream", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ messages: nextMessages, mode: activeMode }) });
-      if (!response.ok) { const payload = await response.json() as { error?: string }; throw new Error(payload.error ?? "The request could not be completed."); }
+      if (!response.ok) {
+        const raw = await response.text();
+        let message = "The request could not be completed.";
+        if (raw) {
+          try {
+            const payload = JSON.parse(raw) as { error?: string };
+            message = payload.error ?? message;
+          } catch {
+            message = raw.trim() || message;
+          }
+        }
+        throw new Error(message);
+      }
       if (!response.body) throw new Error("The provider returned no response stream.");
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
