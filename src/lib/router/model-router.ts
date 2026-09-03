@@ -3,6 +3,7 @@ import { listOpenRouterModels } from "@/lib/providers/openrouter";
 import type { ModelInfo } from "@/types/ai";
 
 const knownOpenRouterFreeModels = [
+  "openrouter/free",
   "inclusionai/ling-3.0-flash-fin:free",
   "liquid/lfm-2.5-2.6b:free",
   "nvidia/nemotron-3.5-lightning:free",
@@ -22,12 +23,15 @@ export async function getFreeModels(): Promise<ModelInfo[]> {
   const models = results
     .flatMap((result) => result.status === "fulfilled" ? result.value : [])
     .filter((model) => model.free && model.available);
-  return models.length > 0 ? models : fallbackModels();
+  if (models.length === 0) return fallbackModels();
+  const router = fallbackModels()[0];
+  return [router, ...models.filter((model) => model.id !== router.id)];
 }
 
 export async function chooseFreeModel(requested?: string): Promise<ModelInfo> {
   const models = await getFreeModels();
-  const selected = requested && requested !== "auto" ? models.find((model) => model.id === requested) ?? models[0] : models[0];
-  if (!selected) throw new Error("No currently available free model is configured");
-  return selected;
+  const selected = requested && requested !== "auto"
+    ? models.find((model) => model.id === requested) ?? models[0]
+    : models[0];
+  return selected ?? fallbackModels()[0]!;
 }
